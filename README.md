@@ -1,6 +1,7 @@
 # 🫡 Welcome to BigOven API Using .NET 🤖
 This is my second task in my internship at [SilverKey](https://www.silverkeytech.com/). 
 
+# 🦦 Checklist of the day
 - [X] Studied this [folder](https://github.com/dodyg/practical-aspnetcore/tree/net6.0/projects/minimal-api).
 - [X] Implemented API
 ```Console
