@@ -37,5 +37,5 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Run Formater
+      - name: Run Formatter
         run: dotnet format --verify-no-changes ./BigOven.sln
