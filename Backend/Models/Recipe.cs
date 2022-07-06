@@ -19,7 +19,7 @@ public class Recipe
         CategoriesIds = categoriesIds;
     }
 
-    public List<Recipe> toList()
+    public List<Recipe> ToList()
     {
         return new List<Recipe> { this };
     }
