@@ -1,4 +1,6 @@
-﻿namespace Backend.Models;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+namespace Backend.Models;
 
 public class Recipe
 {
@@ -17,7 +19,7 @@ public class Recipe
         CategoriesIds = categoriesIds;
     }
 
-    public List<Recipe> ToList()
+    public List<Recipe> toList()
     {
         return new List<Recipe> { this };
     }
