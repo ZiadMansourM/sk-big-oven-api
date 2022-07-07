@@ -1,10 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
-
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 var app = new Frontend.Services.ConsoleService();
-app.Run();
+await app.Run();
 
 public static class Requests
 {
@@ -21,95 +19,103 @@ public static class Requests
         )!;
     }
 
-    public static List<Frontend.Models.Recipe> ListRecipes()
+    async public static Task<List<Frontend.Models.Recipe>> ListRecipes()
     {
         var uri = new Uri($"{_baseAddress}/recipes");
         using var client = new HttpClient();
-        var json = client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result;
-        return Deserialize<List<Frontend.Models.Recipe>>(json);
+        var json = await client.GetAsync(uri);
+        var result = await json.Content.ReadAsStringAsync();
+        return Deserialize<List<Frontend.Models.Recipe>>(result);
     }
 
-    public static List<Frontend.Models.Category> ListCategories()
+    async public static Task<List<Frontend.Models.Category>> ListCategories()
     {
         var uri = new Uri($"{_baseAddress}/categories");
         using var client = new HttpClient();
-        var json = client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result;
-        return Deserialize<List<Frontend.Models.Category>>(json);
+        var json = await client.GetAsync(uri);
+        var result = await json.Content.ReadAsStringAsync();
+        return Deserialize<List<Frontend.Models.Category>>(result);
     }
 
-    public static Frontend.Models.Recipe GetRecipe(Guid id)
+    async public static Task<Frontend.Models.Recipe> GetRecipe(Guid id)
     {
         var uri = new Uri($"{_baseAddress}/recipes/{id}");
         using var client = new HttpClient();
-        var json = client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result;
-        return Deserialize<Frontend.Models.Recipe>(json);
+        var json = await client.GetAsync(uri);
+        var result = await json.Content.ReadAsStringAsync();
+        return Deserialize<Frontend.Models.Recipe>(result);
     }
 
-    public static Frontend.Models.Category GetCategory(Guid id)
+    async public static Task<Frontend.Models.Category> GetCategory(Guid id)
     {
         var uri = new Uri($"{_baseAddress}/categories/{id}");
         using var client = new HttpClient();
-        var json = client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result;
-        return Deserialize<Frontend.Models.Category>(json);
+        var json = await client.GetAsync(uri);
+        var result = await json.Content.ReadAsStringAsync();
+        return Deserialize<Frontend.Models.Category>(result);
     }
 
-    public static Frontend.Models.Recipe CreateRecipe(string name, List<string> ingredients, List<string> instructions, List<Guid> categoriesIds)
+    async public static Task<Frontend.Models.Recipe> CreateRecipe(string name, List<string> ingredients, List<string> instructions, List<Guid> categoriesIds)
     {
         var uri = new Uri($"{_baseAddress}/recipes");
         var recipe = new Frontend.Models.Recipe(name, ingredients, instructions, categoriesIds);
         var json = JsonSerializer.Serialize(recipe);
         var payload = new StringContent(json, Encoding.UTF8, "application/json");
         using var client = new HttpClient();
-        var result = client.PostAsync(uri, payload).Result.Content.ReadAsStringAsync().Result;
+        var result = await client.PostAsync(uri, payload);
+        var responce = await result.Content.ReadAsStringAsync();
         return Deserialize<Frontend.Models.Recipe>(json);
     }
 
-    public static Frontend.Models.Category CreateCategory(string name)
+    async public static Task<Frontend.Models.Category> CreateCategory(string name)
     {
         var uri = new Uri($"{_baseAddress}/categories");
         var category = new Frontend.Models.Category(name);
         var json = JsonSerializer.Serialize(category);
         var payload = new StringContent(json, Encoding.UTF8, "application/json");
         using var client = new HttpClient();
-        var result = client.PostAsync(uri, payload).Result.Content.ReadAsStringAsync().Result;
+        var result = await client.PostAsync(uri, payload);
+        var responce = await result.Content.ReadAsStringAsync();
         return Deserialize<Frontend.Models.Category>(json);
     }
 
-    public static Frontend.Models.Recipe UpdateRecipe(Guid id, string name, List<string> ingredients, List<string> instructions, List<Guid> categoriesIds)
+    async public static Task<Frontend.Models.Recipe> UpdateRecipe(Guid id, string name, List<string> ingredients, List<string> instructions, List<Guid> categoriesIds)
     {
         var uri = new Uri($"{_baseAddress}/recipes/{id}");
         var recipe = new Frontend.Models.Recipe(name, ingredients, instructions, categoriesIds);
         var json = JsonSerializer.Serialize(recipe);
         var payload = new StringContent(json, Encoding.UTF8, "application/json");
         using var client = new HttpClient();
-        var result = client.PutAsync(uri, payload).Result.Content.ReadAsStringAsync().Result;
+        var result = await client.PostAsync(uri, payload);
+        var responce = await result.Content.ReadAsStringAsync();
         return Deserialize<Frontend.Models.Recipe>(json);
     }
 
-    public static Frontend.Models.Category UpdateCategory(Guid id, string name)
+    async public static Task<Frontend.Models.Category> UpdateCategory(Guid id, string name)
     {
         var uri = new Uri($"{_baseAddress}/categories/{id}");
         var category = new Frontend.Models.Category(name);
         var json = JsonSerializer.Serialize(category);
         var payload = new StringContent(json, Encoding.UTF8, "application/json");
         using var client = new HttpClient();
-        var result = client.PutAsync(uri, payload).Result.Content.ReadAsStringAsync().Result;
+        var result = await client.PostAsync(uri, payload);
+        var responce = await result.Content.ReadAsStringAsync();
         return Deserialize<Frontend.Models.Category>(json);
     }
 
-    public static void DeleteRecipe(Guid id)
+    async public static void DeleteRecipe(Guid id)
     {
         var uri = new Uri($"{_baseAddress}/recipes/{id}");
         using var client = new HttpClient();
-        var result = client.DeleteAsync(uri).Result.Content.ReadAsStringAsync().Result;
-        //Console.WriteLine(result);
+        var result = await client.DeleteAsync(uri);
+        var responce = await result.Content.ReadAsStringAsync();
     }
 
-    public static void DeleteCategory(Guid id)
+    async public static void DeleteCategory(Guid id)
     {
         var uri = new Uri($"{_baseAddress}/categories/{id}");
         using var client = new HttpClient();
-        var result = client.DeleteAsync(uri).Result.Content.ReadAsStringAsync().Result;
-        //Console.WriteLine(result);
+        var result = await client.DeleteAsync(uri);
+        var responce = await result.Content.ReadAsStringAsync();
     }
 }

@@ -5,32 +5,30 @@ namespace Frontend.Services;
 
 public class ConsoleService
 {
-    private readonly Dictionary<string, Action> _modeSelector;
+    private readonly Dictionary<string, Func<Task>> _modeSelector;
 
     public ConsoleService()
     {
-        _modeSelector = new Dictionary<string, Action>
+        _modeSelector = new Dictionary<string, Func<Task>>
         {
-            ["Recipes"] = Painter.RecipesMain,
             ["Categories"] = Painter.CategoriesMain,
-            ["Exit"] = () => Environment.Exit(0),
+            ["Recipes"] = Painter.RecipesMain,
+            ["Exit"] = () => Painter.Exit(),
         };
     }
 
-    public void Run()
+    async public Task Run()
     {
         Painter.Setup("BigOven ...");
         Painter.WriteDivider("Talk to me ^^", true);
         while (true)
-        {
-            _modeSelector[Painter.GetMode()]();
-        }
+            await _modeSelector[Painter.GetMode()]();
     }
 }
 
 public class Painter
 {
-    private static readonly Dictionary<string, Action> _recipeSelector = new()
+    private static readonly Dictionary<string, Func<Task>> _recipeSelector = new()
     {
         ["List"] = ListRecipes,
         ["Get"] = GetRecipe,
@@ -38,7 +36,7 @@ public class Painter
         ["Update"] = UpdateRecipe,
         ["Delete"] = DeleteRecipe,
     };
-    private static readonly Dictionary<string, Action> _categorySelector = new()
+    private static readonly Dictionary<string, Func<Task>> _categorySelector = new()
     {
         ["List"] = ListCategories,
         ["Get"] = GetCategory,
@@ -138,7 +136,7 @@ public class Painter
         AnsiConsole.Write(table);
     }
 
-    public static void DrawRecipes(List<Models.Recipe> recipes, string message)
+    async public static void DrawRecipes(List<Models.Recipe> recipes, string message)
     {
         AnsiConsole.Write(
             new Rule($"[yellow]{message}[/]")
@@ -153,33 +151,24 @@ public class Painter
         foreach (var recipe in recipes)
         {
             // Prepare data
-            var categories = Requests.ListCategories();
+            var categories = await Requests.ListCategories();
             Dictionary<Guid, string> categoriesDict = new();
             foreach (var category in categories)
-            {
                 categoriesDict.Add(category.Id, category.Name);
-            }
-
             List<string> categoryNames = new();
             var j = 1;
             foreach (var guidId in recipe.CategoriesIds)
-            {
                 categoryNames.Add($"{j++}) {categoriesDict[guidId]}");
-            }
             // Better Format ingredients
             List<string> ing = new();
             j = 1;
             foreach (var ingredient in recipe.Ingredients)
-            {
                 ing.Add($"{j++}) {ingredient}");
-            }
             // Better Format instructions
             List<string> ins = new();
             j = 1;
             foreach (var instruction in recipe.Instructions)
-            {
                 ins.Add($"{j++}) {instruction}");
-            }
             // Draw
             table = table.AddRow(
                 $"{i}",
@@ -191,11 +180,10 @@ public class Painter
             i++;
             table.AddEmptyRow();
         }
-
         AnsiConsole.Write(table);
     }
 
-    public static void RecipesMain()
+    async public static Task RecipesMain()
     {
         var request = AnsiConsole.Prompt(
            new SelectionPrompt<string>()
@@ -206,10 +194,10 @@ public class Painter
                 "List", "Get", "Create", "Update", "Delete"
            })
        );
-        _recipeSelector[request]();
+       await _recipeSelector[request]();
     }
 
-    public static void CategoriesMain()
+    async public static Task CategoriesMain()
     {
         var request = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
@@ -220,18 +208,21 @@ public class Painter
                 "List", "Get", "Create", "Update", "Delete"
             })
         );
-        _categorySelector[request]();
+        await _categorySelector[request]();
     }
 
-    public static Guid GetRecipeGuid()
+    public static Task Exit()
     {
-        var recipes = Requests.ListRecipes();
+        Environment.Exit(0);
+        return null;
+    }
+
+    async public static Task<Guid> GetRecipeGuid()
+    {
+        var recipes = await Requests.ListRecipes();
         Dictionary<string, Guid> recipesDict = new();
         foreach (var recipe in recipes)
-        {
             recipesDict.Add(recipe.Name, recipe.Id);
-        }
-
         var name = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
             .Title("Which one '[green]Pick Recipe[/]' ?")
@@ -242,15 +233,12 @@ public class Painter
         return recipesDict[name];
     }
 
-    public static Guid GetCategoryGuid()
+    async public static Task<Guid> GetCategoryGuid()
     {
-        var categories = Requests.ListCategories();
+        var categories = await  Requests.ListCategories();
         Dictionary<string, Guid> categoriesDict = new();
         foreach (var category in categories)
-        {
             categoriesDict.Add(category.Name, category.Id);
-        }
-
         var name = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
             .Title("Which one '[green]Pick Category[/]' ?")
@@ -262,29 +250,26 @@ public class Painter
     }
 
     // Recipes
-    public static void ListRecipes()
+    async public static Task ListRecipes()
     {
-        var recipes = Requests.ListRecipes();
+        var recipes = await Requests.ListRecipes();
         DrawRecipes(recipes, "Recipes List");
     }
 
-    public static void GetRecipe()
+    async public static Task GetRecipe()
     {
-        var guid = GetRecipeGuid();
-        var recipe = Requests.GetRecipe(guid);
+        var guid = await GetRecipeGuid();
+        var recipe = await Requests.GetRecipe(guid);
         DrawRecipes(recipe.ToList(), "Here you are ^^");
     }
 
-    public static List<Guid> GetGuidsList()
+    async public static Task<List<Guid>> GetGuidsList()
     {
-        var categories = Requests.ListCategories();
+        var categories = await Requests.ListCategories();
         //DrawCategories(categories, "Categories List");
         Dictionary<string, Guid> categoriesNames = new();
         foreach (var category in categories)
-        {
             categoriesNames.Add(category.Name, category.Id);
-        }
-
         var Names = AnsiConsole.Prompt(
             new MultiSelectionPrompt<string>()
             .Title("choose [green]categories[/]?")
@@ -297,19 +282,16 @@ public class Painter
         );
         List<Guid> GuidsList = new();
         foreach (var n in Names)
-        {
             GuidsList.Add(categoriesNames[n]);
-        }
-
         return GuidsList;
     }
 
-    public static void CreateRecipe()
+    async public static Task CreateRecipe()
     {
         // [Get Title]
         var name = Ask<string>("What's the [green]recipe name[/]?").Trim();
         // [validate doesn't exist]
-        var respies = Requests.ListRecipes();
+        var respies = await Requests.ListRecipes();
         foreach (var r in respies)
         {
             if (name == r.Name)
@@ -323,16 +305,16 @@ public class Painter
         // [Get instructions]
         var instructions = AskMultiLine("instructions");
         // [get guids of categories]
-        var guidsList = GetGuidsList();
+        var guidsList = await GetGuidsList();
         // Create recipe
-        var recipe = Requests.CreateRecipe(name, ingredients, instructions, guidsList);
+        var recipe = await Requests.CreateRecipe(name, ingredients, instructions, guidsList);
         DrawRecipes(recipe.ToList(), "Created Successfully ^^");
     }
 
-    public static void UpdateRecipe()
+    async public static Task UpdateRecipe()
     {
-        var guid = GetRecipeGuid();
-        var recipe = Requests.GetRecipe(guid);
+        var guid = await GetRecipeGuid();
+        var recipe = await Requests.GetRecipe(guid);
         var fieldName = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
             .Title("Which field you want to [green]Update[/]?")
@@ -357,12 +339,11 @@ public class Painter
                 recipe.Instructions = instructions;
                 break;
             case "Categories":
-                var guidsList = GetGuidsList();
+                var guidsList = await GetGuidsList();
                 recipe.CategoriesIds = guidsList;
                 break;
         }
-
-        var updatedRecipe = Requests.UpdateRecipe(
+        var updatedRecipe = await Requests.UpdateRecipe(
             guid,
             recipe.Name,
             recipe.Ingredients,
@@ -372,31 +353,31 @@ public class Painter
         DrawRecipes(updatedRecipe.ToList(), "Created Successfully ^^");
     }
 
-    public static void DeleteRecipe()
+    async public static Task DeleteRecipe()
     {
-        var guid = GetRecipeGuid();
+        var guid = await GetRecipeGuid();
         Requests.DeleteRecipe(guid);
-        DrawRecipes(Requests.ListRecipes(), "Done ^^");
+        DrawRecipes(await Requests.ListRecipes(), "Done ^^");
     }
 
     //// Categories
-    public static void ListCategories()
+    async public static Task ListCategories()
     {
-        var categories = Requests.ListCategories();
+        var categories = await Requests.ListCategories();
         DrawCategories(categories, "Categories List");
     }
 
-    public static void GetCategory()
+    async public static Task GetCategory()
     {
-        var guid = GetCategoryGuid();
-        var category = Requests.GetCategory(guid);
+        var guid = await GetCategoryGuid();
+        var category = await Requests.GetCategory(guid);
         DrawCategories(category.ToList(), "Here you are ^^");
     }
 
-    public static void CreateCategory()
+    async public static Task CreateCategory()
     {
         var name = Ask<string>("What's the [green]Category name?[/]").Trim();
-        var categories = Requests.ListCategories();
+        var categories = await Requests.ListCategories();
         foreach (var c in categories)
         {
             if (name == c.Name)
@@ -405,23 +386,22 @@ public class Painter
                 return;
             }
         }
-
-        var category = Requests.CreateCategory(name);
+        var category = await Requests.CreateCategory(name);
         DrawCategories(category.ToList(), "Created Successfully ^^");
     }
 
-    public static void UpdateCategory()
+    async public static Task UpdateCategory()
     {
-        var guid = GetCategoryGuid();
+        var guid = await GetCategoryGuid();
         var name = Ask<string>("What's the new [green]Name?[/]").Trim();
-        var category = Requests.UpdateCategory(guid, name);
+        var category = await Requests.UpdateCategory(guid, name);
         DrawCategories(category.ToList(), "Updated Successfully ^^");
     }
 
-    public static void DeleteCategory()
+    async public static Task DeleteCategory()
     {
-        var guid = GetCategoryGuid();
+        var guid = await GetCategoryGuid();
         Requests.DeleteCategory(guid);
-        DrawCategories(Requests.ListCategories(), "Done ^^");
+        DrawCategories(await Requests.ListCategories(), "Done ^^");
     }
 }
