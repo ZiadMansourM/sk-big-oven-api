@@ -5,17 +5,12 @@ namespace Frontend.Services;
 
 public class ConsoleService
 {
-    private readonly Dictionary<string, Func<Task>> _modeSelector;
-
-    public ConsoleService()
+    private readonly Dictionary<string, Func<Task>> _modeSelector = new()
     {
-        _modeSelector = new Dictionary<string, Func<Task>>
-        {
-            ["Categories"] = Painter.CategoriesMain,
-            ["Recipes"] = Painter.RecipesMain,
-            ["Exit"] = () => Painter.Exit(),
-        };
-    }
+        ["Categories"] = Painter.CategoriesMain,
+        ["Recipes"] = Painter.RecipesMain,
+        ["Exit"] = Painter.Exit,
+    };
 
     async public Task Run()
     {
@@ -186,15 +181,15 @@ public class Painter
     async public static Task RecipesMain()
     {
         var request = AnsiConsole.Prompt(
-           new SelectionPrompt<string>()
-           .Title("About [red]recipes[/], [green] pick what want?[/]")
-           .PageSize(10)
-           .MoreChoicesText("[grey](Move up and down to reveal more Options)[/]")
-           .AddChoices(new[] {
+            new SelectionPrompt<string>()
+            .Title("About [red]recipes[/], [green] pick what want?[/]")
+            .PageSize(10)
+            .MoreChoicesText("[grey](Move up and down to reveal more Options)[/]")
+            .AddChoices(new[] {
                 "List", "Get", "Create", "Update", "Delete"
-           })
-       );
-       await _recipeSelector[request]();
+            })
+        );
+        await _recipeSelector[request]();
     }
 
     async public static Task CategoriesMain()
@@ -213,8 +208,7 @@ public class Painter
 
     public static Task Exit()
     {
-        Environment.Exit(0);
-        return null;
+        return Task.Run(() => Environment.Exit(0));
     }
 
     async public static Task<Guid> GetRecipeGuid()
@@ -235,7 +229,7 @@ public class Painter
 
     async public static Task<Guid> GetCategoryGuid()
     {
-        var categories = await  Requests.ListCategories();
+        var categories = await Requests.ListCategories();
         Dictionary<string, Guid> categoriesDict = new();
         foreach (var category in categories)
             categoriesDict.Add(category.Name, category.Id);
