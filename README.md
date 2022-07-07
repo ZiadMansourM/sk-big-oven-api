@@ -1,4 +1,11 @@
-# 🫡 Welcome to BigOven API Using .NET 🤖
+# 🫡 Welcome to BigOven API Using .NET 🤖 
+
+<div align="center">
+  
+  [![Build Format](https://github.com/ZiadMansourM/sk-big-oven-api/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ZiadMansourM/sk-big-oven-api/actions)
+  
+</div>
+
 This is my second task in my internship at [SilverKey](https://www.silverkeytech.com/). 
 
 # 🦦 Checklist of the day
